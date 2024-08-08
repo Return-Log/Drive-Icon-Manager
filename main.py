@@ -1,3 +1,9 @@
+"""
+https://github.com/Return-Log/Drive-Icon-Manager
+GPL-3.0 license
+coding: UTF-8
+"""
+
 import winreg
 from colorama import init, Fore
 import ctypes
@@ -8,14 +14,14 @@ init(autoreset=True)
 
 # 定义版本号和GitHub链接
 VERSION = "v1.0"
-GITHUB_LINK = "https://github.com/Return-Log"
+GITHUB_LINK = "https://github.com/Return-Log/Drive-Icon-Manager"
 
 
 def print_welcome():
     """打印欢迎信息和版本号"""
     print(f"{Fore.GREEN}欢迎使用 Drive Icon Manager 版本 {VERSION}")
-    print(f"{Fore.YELLOW}此工具可以帮助你删除 '此电脑' 中的网盘图标")
-    print(f"{Fore.CYAN}访问我们的 GitHub 仓库: {Fore.BLUE}{GITHUB_LINK}\n")
+    print(f"{Fore.YELLOW}此工具可以帮助你删除 '此电脑' 中的第三方软件图标")
+    print(f"{Fore.CYAN}访问 GitHub 仓库: {Fore.BLUE}{GITHUB_LINK}\n")
 
 
 def is_admin():
