@@ -1,14 +1,16 @@
 import sys
 import winreg
+import os
 import ctypes
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QMessageBox, QTabWidget, QVBoxLayout, QTextBrowser
+import time
+import pyautogui
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, QTabWidget, QListWidget, QListWidgetItem
 from PyQt6.QtCore import Qt
 
 # 定义版本号和链接
 VERSION = "v2.0"
 GITHUB_LINK = "https://github.com/Return-Log/Drive-Icon-Manager"
 FORUM_LINK = "https://www.52pojie.cn/home.php?mod=space&uid=2286792"
-
 
 class DriveIconManager(QWidget):
     def __init__(self):
@@ -76,6 +78,10 @@ class DriveIconManager(QWidget):
         self.delete_button.clicked.connect(self.delete_selected_icon)
         button_layout.addWidget(self.delete_button)
 
+        self.permissions_button = QPushButton('更改注册表权限', self)
+        self.permissions_button.clicked.connect(self.open_permissions_window)
+        button_layout.addWidget(self.permissions_button)
+
         self.exit_button = QPushButton('退出程序', self)
         self.exit_button.clicked.connect(self.close)
         button_layout.addWidget(self.exit_button)
@@ -110,7 +116,7 @@ class DriveIconManager(QWidget):
             winreg.CloseKey(key)
             return sid
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"无法获取当前用户的SID: {e}")
+            self.display_error_message(f"无法获取当前用户的SID: {e}")
             return None
 
     def list_drive_icons(self, base_key, path, source):
@@ -168,9 +174,12 @@ class DriveIconManager(QWidget):
                                                 '此电脑')
             if self.icons:
                 for index, (subkey_name, display_name, source) in enumerate(self.icons):
-                    self.this_pc_text.addItem(f"{subkey_name} - {display_name}")
+                    item = QListWidgetItem(f"{subkey_name} - {display_name}")
+                    self.this_pc_text.addItem(item)
             else:
-                self.this_pc_text.addItem("此电脑未找到驱动器图标")
+                item = QListWidgetItem("此电脑未找到驱动器图标")
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 设置不可选择
+                self.this_pc_text.addItem(item)
 
         elif self.selected_location == '资源管理器侧边栏':
             self.sidebar_text.clear()
@@ -180,9 +189,12 @@ class DriveIconManager(QWidget):
                                                 '资源管理器侧边栏')
             if self.icons:
                 for index, (subkey_name, display_name, source) in enumerate(self.icons):
-                    self.sidebar_text.addItem(f"{subkey_name} - {display_name}")
+                    item = QListWidgetItem(f"{subkey_name} - {display_name}")
+                    self.sidebar_text.addItem(item)
             else:
-                self.sidebar_text.addItem("资源管理器侧边栏未找到驱动器图标")
+                item = QListWidgetItem("资源管理器侧边栏未找到驱动器图标")
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 设置不可选择
+                self.sidebar_text.addItem(item)
 
     def delete_selected_icon(self):
         """删除选中的驱动器图标"""
@@ -202,10 +214,34 @@ class DriveIconManager(QWidget):
 
     def display_error_message(self, message):
         """在当前标签页显示错误信息"""
+        item = QListWidgetItem(message)
+        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)  # 设置不可选择
         if self.selected_location == '此电脑':
-            self.this_pc_text.addItem(message)
+            self.this_pc_text.addItem(item)
         elif self.selected_location == '资源管理器侧边栏':
-            self.sidebar_text.addItem(message)
+            self.sidebar_text.addItem(item)
+
+    def open_permissions_window(self):
+        """打开注册表namespace文件夹权限设置窗口"""
+        if self.selected_location == '此电脑':
+            key_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
+            full_key_path = f"HKEY_CURRENT_USER\\{key_path}"
+        elif self.selected_location == '资源管理器侧边栏':
+            current_user_sid = self.get_current_user_sid()
+            key_path = fr"{current_user_sid}\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace"
+            full_key_path = f"HKEY_USERS\\{key_path}"
+
+        # 打开注册表编辑器
+        os.system('start regedit')
+
+        time.sleep(1)  # 等待注册表编辑器打开
+
+        # 模拟打开文件菜单的按键操作
+        pyautogui.hotkey('alt', 'e')  # 打开文件菜单
+        time.sleep(0.5)  # 等待菜单打开
+
+        # 模拟按下 P 键以打开权限设置
+        pyautogui.press('p')
 
     def on_tab_change(self, index):
         """当标签页改变时，刷新显示对应的图标"""
