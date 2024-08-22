@@ -3,7 +3,7 @@ https://github.com/Return-Log/Drive-Icon-Manager
 GPL-3.0 license
 coding: UTF-8
 """
-
+import os
 import winreg
 import ctypes
 import win32api
@@ -13,12 +13,13 @@ import pyperclip
 import win32security
 import win32con
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, \
-    QTabWidget, QListWidget, QListWidgetItem, QTextEdit
+    QTabWidget, QListWidget, QListWidgetItem, QTextEdit, QTextBrowser
 from PyQt6.QtCore import Qt
+from markdown import markdown
 from RegistryPermissionsManager import RegistryPermissionsManager  # 修改注册表权限的模块
 
 # 定义版本号和链接
-VERSION = "v2.0"
+VERSION = "v2.1"
 GITHUB_LINK = "https://github.com/Return-Log/Drive-Icon-Manager"
 FORUM_LINK = "https://www.52pojie.cn/thread-1955346-1-1.html"
 
@@ -32,6 +33,7 @@ class OutputRedirect:
 
     def flush(self):
         pass
+
 
 class DriveIconManager(QWidget):
     def __init__(self):
@@ -73,10 +75,12 @@ class DriveIconManager(QWidget):
         self.this_pc_tab = QWidget()
         self.sidebar_tab = QWidget()
         self.permissions_tab = QWidget()
+        self.about_tab = QWidget()
 
         self.tab_widget.addTab(self.this_pc_tab, "此电脑")
         self.tab_widget.addTab(self.sidebar_tab, "资源管理器侧边栏")
         self.tab_widget.addTab(self.permissions_tab, "注册表权限")
+        self.tab_widget.addTab(self.about_tab, "关于")
         self.tab_widget.currentChanged.connect(self.on_tab_change)
 
         # 设置标签页布局
@@ -127,6 +131,26 @@ class DriveIconManager(QWidget):
         self.delete_button.clicked.connect(self.delete_selected_icon)
         button_layout.addWidget(self.delete_button)
 
+        # 创建关于标签页的布局
+        self.about_layout = QVBoxLayout()
+        self.about_text_browser = QTextBrowser()
+
+        # 加载并显示关于内容
+        about_content = self.load_about_content()
+        try:
+            html_content = markdown(about_content)
+            self.about_text_browser.setHtml(html_content)
+        except Exception as e:
+            self.about_text_browser.setText(f"无法处理关于内容: {e}")
+
+        self.about_layout.addWidget(self.about_text_browser)
+        self.about_tab.setLayout(self.about_layout)
+
+        # 添加备份按钮
+        self.backup_button = QPushButton('备份选中的驱动器图标', self)
+        self.backup_button.clicked.connect(self.backup_selected_icon)
+        button_layout.addWidget(self.backup_button)
+
         self.exit_button = QPushButton('退出程序', self)
         self.exit_button.clicked.connect(self.close)
         button_layout.addWidget(self.exit_button)
@@ -175,10 +199,18 @@ class DriveIconManager(QWidget):
                     subkey_name = winreg.EnumKey(key, i)
                     subkey_path = f"{path}\\{subkey_name}"
                     subkey = winreg.OpenKey(base_key, subkey_path, 0, winreg.KEY_READ)
+
                     try:
                         display_name, _ = winreg.QueryValueEx(subkey, None)
                     except FileNotFoundError:
                         display_name = "无显示名称"
+
+                    # 仅对 'HKEY_LOCAL_MACHINE' 进行过滤，显示 '百度网盘'
+                    if base_key == winreg.HKEY_LOCAL_MACHINE and display_name != "百度网盘":
+                        winreg.CloseKey(subkey)
+                        i += 1
+                        continue
+
                     icons.append((subkey_name, display_name, source))
                     winreg.CloseKey(subkey)
                     i += 1
@@ -191,10 +223,17 @@ class DriveIconManager(QWidget):
 
     def delete_drive_icon(self, index):
         """删除指定索引的驱动器图标"""
+        if index < 0 or index >= len(self.icons):
+            QMessageBox.warning(self, "未选中任何项", "请先选择一个驱动器图标再进行删除操作")
+            return
+
         subkey_name, _, source = self.icons[index]
         if source == '此电脑':
             base_key = winreg.HKEY_CURRENT_USER
             key_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
+        elif source == '百度网盘':
+            base_key = winreg.HKEY_LOCAL_MACHINE
+            key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
         else:
             base_key = winreg.HKEY_USERS
             current_user_sid = self.get_current_user_sid()
@@ -210,17 +249,86 @@ class DriveIconManager(QWidget):
         finally:
             self.display_icons()  # 删除后自动刷新
 
+    def backup_selected_icon(self):
+        """备份选中的驱动器图标"""
+        selected_index = self.this_pc_text.currentRow() if self.selected_location == '此电脑' else self.sidebar_text.currentRow()
+
+        if selected_index < 0 or selected_index >= len(self.icons):
+            QMessageBox.warning(self, "无效的选择", "请先选择一个有效的驱动器图标再进行操作")
+            return
+
+        subkey_name, display_name, source = self.icons[selected_index]
+
+        # 根据源选择正确的根键和路径
+        if source == '此电脑':
+            base_key = winreg.HKEY_CURRENT_USER
+            key_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
+            base_key_str = 'HKEY_CURRENT_USER'
+        elif source == '百度网盘':
+            base_key = winreg.HKEY_LOCAL_MACHINE
+            key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
+            base_key_str = 'HKEY_LOCAL_MACHINE'
+        elif source == '资源管理器侧边栏':
+            base_key = winreg.HKEY_USERS
+            current_user_sid = self.get_current_user_sid()
+            key_path = fr'{current_user_sid}\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace'
+            base_key_str = 'HKEY_USERS'
+
+        full_key_path = f"{key_path}\\{subkey_name}"
+
+        try:
+            reg_file_name = f"双击恢复{display_name}图标.reg"
+            with open(reg_file_name, 'w', encoding='utf-16le') as reg_file:
+                reg_file.write("\ufeff")  # 写入BOM以标识UTF-16LE编码
+                reg_file.write("Windows Registry Editor Version 5.00\n\n")
+                reg_file.write(f"[{base_key_str}\\{full_key_path}]\n")
+
+                key = winreg.OpenKey(base_key, full_key_path, 0, winreg.KEY_READ)
+                i = 0
+                while True:
+                    try:
+                        value_name, value_data, value_type = winreg.EnumValue(key, i)
+                        if value_type == winreg.REG_SZ:
+                            reg_file.write(f"\"{value_name}\"=\"{value_data}\"\n")
+                        elif value_type == winreg.REG_DWORD:
+                            reg_file.write(f"\"{value_name}\"=dword:{value_data:08x}\n")
+                        elif value_type == winreg.REG_BINARY:
+                            reg_file.write(f"\"{value_name}\"=hex:{','.join([f'{b:02x}' for b in value_data])}\n")
+                        elif value_type == winreg.REG_MULTI_SZ:
+                            reg_file.write(
+                                f"\"{value_name}\"=hex(7):{','.join([f'{ord(c):02x}' for c in '\\0'.join(value_data)])},00,00\n")
+                        elif value_type == winreg.REG_EXPAND_SZ:
+                            reg_file.write(
+                                f"\"{value_name}\"=hex(2):{','.join([f'{ord(c):02x}' for c in value_data])},00,00\n")
+                        i += 1
+                    except OSError:
+                        break
+                winreg.CloseKey(key)
+
+            QMessageBox.information(self, "备份成功", f"驱动器图标已成功备份到 {reg_file_name}")
+
+        except Exception as e:
+            self.display_error_message(f"无法备份驱动器图标: {e}")
+
     def display_icons(self):
         """显示所有驱动器图标"""
         self.icons = []
         if self.selected_location == '此电脑':
             self.this_pc_text.clear()
+
+            # 列出 HKEY_CURRENT_USER 下的驱动器图标
             self.icons += self.list_drive_icons(winreg.HKEY_CURRENT_USER,
                                                 r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace',
                                                 '此电脑')
+
+            # 列出 HKEY_LOCAL_MACHINE 下的 '百度网盘' 图标
+            self.icons += self.list_drive_icons(winreg.HKEY_LOCAL_MACHINE,
+                                                r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace',
+                                                '百度网盘')
+
             if self.icons:
                 for index, (subkey_name, display_name, source) in enumerate(self.icons):
-                    item = QListWidgetItem(f"{subkey_name} - {display_name}")
+                    item = QListWidgetItem(f"{subkey_name} - {display_name} ({source})")
                     self.this_pc_text.addItem(item)
             else:
                 item = QListWidgetItem("此电脑未找到驱动器图标")
@@ -386,6 +494,24 @@ class DriveIconManager(QWidget):
             self.display_icons()
         elif index == 2:
             self.display_permissions()
+
+    def load_about_content(self):
+        """加载关于内容"""
+        try:
+            if getattr(sys, 'frozen', False):
+                # 如果是打包后的程序
+                about_file_path = os.path.join(sys._MEIPASS, 'about_content.md')
+            else:
+                # 如果是开发环境
+                about_file_path = 'about_content.md'
+
+            with open(about_file_path, 'r', encoding='utf-8') as file:
+                about_text = file.read()
+
+            return about_text if about_text else "关于内容为空。"
+
+        except FileNotFoundError:
+            return "关于内容文件未找到。"
 
 
 if __name__ == '__main__':

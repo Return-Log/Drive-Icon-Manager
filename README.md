@@ -1,12 +1,11 @@
-# 网盘图标删除器 Drive Icon Manager v2.0
+# 网盘图标删除器 Drive Icon Manager v2.1
 
 ## 介绍
 
 - 一键轻松删除Windows平台“此电脑”及“资源管理器侧边栏”中的第三方图标，使你不再受无用的网盘图标影响。
-
 - 这些图标当然可以手动删除，但手动查找注册表是一件繁琐的事，此外“资源管理器侧边栏”中的图标路径包含用户独有的SID，直接复制网上的路径是行不通的，本程序会自动获取当前用户SID，节省自己查找的时间。
-
-- 一件锁定注册表，使图标不再复发
+- 一键锁定注册表，使图标不再复发
+- 一键备份注册表项，有需要时可以恢复
 
 ## 原理
 
@@ -20,11 +19,15 @@
 
 ## 界面展示
 
+![Snipaste_2024-08-22_22-04-02.png](https://s2.loli.net/2024/08/22/9koRL5h3G7p8WS4.png)
+
 ![Snipaste_2024-08-19_21-06-31.png](https://s2.loli.net/2024/08/19/2uWPh1e9paBV5xQ.png)
 
 ![Snipaste_2024-08-19_20-40-26.png](https://s2.loli.net/2024/08/19/QojfFreUpyhEKuY.png)
 
-## 注意事项
+## 详细说明
+
+### 禁用写入权限
 
 - 点击‘禁用写入权限’后其它软件无法读取和更改注册表，当然此程序也无法读取相应注册表，【务必】在禁用写入权限前先将无用的图标删除。
 
@@ -33,6 +36,48 @@
 - 点击了‘禁用写入权限’后如果想继续让其它软件添加图标只能进行手动操作，如下图所示
 
   ![Snipaste_2024-08-19_20-50-33.png](https://s2.loli.net/2024/08/19/Fr7NeGY6BwlDEqL.png)
+
+### 备份注册表
+
+- 选中需要备份的项，点击下方备份按钮，会在程序根目录下生成对应的.reg文件，需要恢复时，双击即可恢复
+
+### 关于百度网盘图标
+
+- 现已支持百度网盘图标的删除，将’此电脑‘标签页下两个百度网盘的项都删除即可
+- 百度网盘使用的路径系统也在使用故不添加一键锁定注册表功能
+- 需要永久关闭百度网盘图标可到百度网盘设置中将’在我的电脑创建快捷方式‘取消勾选
+
+## 发行版
+
+**运行环境：**win10/win11 非精简版系统
+
+### 开源仓库
+
+<https://github.com/Return-Log/Drive-Icon-Manager>
+
+### 网盘下载
+
+**v2.1 单文件版**【推荐下载】
+
+https://wwif.lanzouk.com/i4uja2862t4h
+密码:e1oy
+
+================================
+
+**v2.0 单文件版**
+https://wwif.lanzouh.com/iY3TQ27veitc 
+
+密码:18kd
+
+**v2.0 绿色版**
+https://wwif.lanzouh.com/ivwHW27vel4f
+
+=================================
+
+**v1.1 单文件版**
+https://wwif.lanzouh.com/iaj7727m1zqj 
+
+密码:czzg
 
 ## 开发环境
 
@@ -47,8 +92,11 @@ import subprocess
 import pyperclip
 import win32security
 import win32con
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, QTabWidget, QListWidget, QListWidgetItem, QTextEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, \
+    QTabWidget, QListWidget, QListWidgetItem, QTextEdit, QTextBrowser
 from PyQt6.QtCore import Qt
+from markdown import markdown
+import about_content  # ‘关于’模块
 from RegistryPermissionsManager import RegistryPermissionsManager  # 修改注册表权限的模块
 ```
 
