@@ -205,8 +205,9 @@ class DriveIconManager(QWidget):
                     except FileNotFoundError:
                         display_name = "无显示名称"
 
-                    # 仅对 'HKEY_LOCAL_MACHINE' 进行过滤，显示 '百度网盘'
-                    if base_key == winreg.HKEY_LOCAL_MACHINE and display_name != "百度网盘":
+                    # 仅对 'HKEY_LOCAL_MACHINE' 进行过滤，显示符合条件的第三方程序图标
+                    if base_key == winreg.HKEY_LOCAL_MACHINE and \
+                            (display_name != "CLSID" in display_name or subkey_name == "DelegateFolders"):
                         winreg.CloseKey(subkey)
                         i += 1
                         continue
@@ -231,7 +232,7 @@ class DriveIconManager(QWidget):
         if source == '此电脑':
             base_key = winreg.HKEY_CURRENT_USER
             key_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
-        elif source == '百度网盘':
+        elif source == '此电脑2':
             base_key = winreg.HKEY_LOCAL_MACHINE
             key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
         else:
@@ -264,7 +265,7 @@ class DriveIconManager(QWidget):
             base_key = winreg.HKEY_CURRENT_USER
             key_path = r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
             base_key_str = 'HKEY_CURRENT_USER'
-        elif source == '百度网盘':
+        elif source == '此电脑2':
             base_key = winreg.HKEY_LOCAL_MACHINE
             key_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace'
             base_key_str = 'HKEY_LOCAL_MACHINE'
@@ -277,7 +278,7 @@ class DriveIconManager(QWidget):
         full_key_path = f"{key_path}\\{subkey_name}"
 
         try:
-            reg_file_name = f"双击恢复{display_name}图标.reg"
+            reg_file_name = f"双击恢复{display_name}-[{source}]图标.reg"
             with open(reg_file_name, 'w', encoding='utf-16le') as reg_file:
                 reg_file.write("\ufeff")  # 写入BOM以标识UTF-16LE编码
                 reg_file.write("Windows Registry Editor Version 5.00\n\n")
@@ -321,14 +322,14 @@ class DriveIconManager(QWidget):
                                                 r'Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace',
                                                 '此电脑')
 
-            # 列出 HKEY_LOCAL_MACHINE 下的 '百度网盘' 图标
+            # 列出 HKEY_LOCAL_MACHINE 下的驱动器图标
             self.icons += self.list_drive_icons(winreg.HKEY_LOCAL_MACHINE,
                                                 r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace',
-                                                '百度网盘')
+                                                '此电脑2')
 
             if self.icons:
                 for index, (subkey_name, display_name, source) in enumerate(self.icons):
-                    item = QListWidgetItem(f"{subkey_name} - {display_name} ({source})")
+                    item = QListWidgetItem(f"{subkey_name} - {display_name}")
                     self.this_pc_text.addItem(item)
             else:
                 item = QListWidgetItem("此电脑未找到驱动器图标")
