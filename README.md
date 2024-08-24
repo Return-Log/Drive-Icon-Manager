@@ -1,4 +1,4 @@
-# 网盘图标删除器 Drive Icon Manager v2.1
+# 网盘图标删除器 Drive Icon Manager v2.2
 
 ## 介绍
 
@@ -19,11 +19,11 @@
 
 ## 界面展示
 
-![Snipaste_2024-08-22_22-04-02.png](https://s2.loli.net/2024/08/22/9koRL5h3G7p8WS4.png)
+<img src="https://s2.loli.net/2024/08/24/LQqXGhWFZyK2Nzu.png" alt="Snipaste_2024-08-24_14-12-01.png" style="zoom: 67%;" />
 
-![Snipaste_2024-08-19_21-06-31.png](https://s2.loli.net/2024/08/19/2uWPh1e9paBV5xQ.png)
+<img src="https://s2.loli.net/2024/08/19/2uWPh1e9paBV5xQ.png" alt="Snipaste_2024-08-19_21-06-31.png" style="zoom: 67%;" />
 
-![Snipaste_2024-08-19_20-40-26.png](https://s2.loli.net/2024/08/19/QojfFreUpyhEKuY.png)
+<img src="https://s2.loli.net/2024/08/19/QojfFreUpyhEKuY.png" alt="Snipaste_2024-08-19_20-40-26.png" style="zoom: 67%;" />
 
 ## 详细说明
 
@@ -41,11 +41,10 @@
 
 - 选中需要备份的项，点击下方备份按钮，会在程序根目录下生成对应的.reg文件，需要恢复时，双击即可恢复
 
-### 关于百度网盘图标
+### 部分‘此电脑’中图标
 
-- 现已支持百度网盘图标的删除，将’此电脑‘标签页下两个百度网盘的项都删除即可
-- 百度网盘使用的路径系统也在使用故不添加一键锁定注册表功能
-- 需要永久关闭百度网盘图标可到百度网盘设置中将’在我的电脑创建快捷方式‘取消勾选
+- ‘此电脑’标签页显示两个一样的项时，需要都删除
+- 另一个项可以点‘注册表权限’中的‘打开此电脑2注册表’快速打开
 
 ## 发行版
 
@@ -57,7 +56,14 @@
 
 ### 网盘下载
 
-**v2.1 单文件版**【推荐下载】
+**v2.2 单文件版**【推荐下载】
+
+https://wwif.lanzouk.com/iRLAj289qoqb
+密码:heeq
+
+================================
+
+**v2.1 单文件版**
 
 https://wwif.lanzouk.com/i4uja2862t4h
 密码:e1oy
