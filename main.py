@@ -19,7 +19,7 @@ from markdown import markdown
 from RegistryPermissionsManager import RegistryPermissionsManager  # 修改注册表权限的模块
 
 # 定义版本号和链接
-VERSION = "v2.1"
+VERSION = "v2.2"
 GITHUB_LINK = "https://github.com/Return-Log/Drive-Icon-Manager"
 FORUM_LINK = "https://www.52pojie.cn/thread-1955346-1-1.html"
 
@@ -50,7 +50,7 @@ class DriveIconManager(QWidget):
 
     def initUI(self):
         self.setWindowTitle('Drive Icon Manager')
-        self.setGeometry(150, 150, 500, 500)  # 增加高度以容纳新的控件
+        self.setGeometry(150, 150, 500, 500)
 
         layout = QVBoxLayout()
 
@@ -83,30 +83,41 @@ class DriveIconManager(QWidget):
         self.tab_widget.addTab(self.about_tab, "关于")
         self.tab_widget.currentChanged.connect(self.on_tab_change)
 
-        # 设置标签页布局
+        # 此电脑标签页的布局
         self.this_pc_layout = QVBoxLayout()
         self.this_pc_text = QListWidget()
         self.this_pc_layout.addWidget(self.this_pc_text)
         self.this_pc_tab.setLayout(self.this_pc_layout)
 
+        # 资源管理器侧边栏标签页的布局
         self.sidebar_layout = QVBoxLayout()
         self.sidebar_text = QListWidget()
         self.sidebar_layout.addWidget(self.sidebar_text)
         self.sidebar_tab.setLayout(self.sidebar_layout)
 
+        # 注册表权限标签页的布局
         self.permissions_layout = QVBoxLayout()
         self.permissions_list = QListWidget()
         self.permissions_layout.addWidget(self.permissions_list)
 
-        # 添加按钮和终端输出区域
+        # 关于标签页的布局
+        self.about_layout = QVBoxLayout()
+        self.about_text_browser = QTextBrowser()
+
+        # ‘关于’界面的按钮
         self.open_this_pc_button = QPushButton("打开此电脑注册表", self)
         self.open_this_pc_button.clicked.connect(self.open_this_pc_registry)
         self.permissions_layout.addWidget(self.open_this_pc_button)
+
+        self.open_this_pc_button_2 = QPushButton("打开此电脑2注册表", self)
+        self.open_this_pc_button_2.clicked.connect(self.open_this_pc_registry_2)
+        self.permissions_layout.addWidget(self.open_this_pc_button_2)
 
         self.open_sidebar_button = QPushButton("打开资源管理器侧边栏注册表", self)
         self.open_sidebar_button.clicked.connect(self.open_sidebar_registry)
         self.permissions_layout.addWidget(self.open_sidebar_button)
 
+        # 终端输出
         self.terminal_output = QTextEdit()
         self.terminal_output.setReadOnly(True)
         self.permissions_layout.addWidget(self.terminal_output)
@@ -119,22 +130,6 @@ class DriveIconManager(QWidget):
         # 显示权限状态
         self.display_permissions()
 
-        # 刷新和删除按钮的水平布局
-        button_layout = QHBoxLayout()
-
-        self.refresh_button = QPushButton('刷新', self)
-        self.refresh_button.clicked.connect(self.display_icons)
-        self.refresh_button.setFixedWidth(60)
-        button_layout.addWidget(self.refresh_button)
-
-        self.delete_button = QPushButton('删除选中的驱动器图标', self)
-        self.delete_button.clicked.connect(self.delete_selected_icon)
-        button_layout.addWidget(self.delete_button)
-
-        # 创建关于标签页的布局
-        self.about_layout = QVBoxLayout()
-        self.about_text_browser = QTextBrowser()
-
         # 加载并显示关于内容
         about_content = self.load_about_content()
         try:
@@ -145,6 +140,18 @@ class DriveIconManager(QWidget):
 
         self.about_layout.addWidget(self.about_text_browser)
         self.about_tab.setLayout(self.about_layout)
+
+        # 底部按钮的水平布局
+        button_layout = QHBoxLayout()
+
+        self.refresh_button = QPushButton('刷新', self)
+        self.refresh_button.clicked.connect(self.display_icons)
+        self.refresh_button.setFixedWidth(60)
+        button_layout.addWidget(self.refresh_button)
+
+        self.delete_button = QPushButton('删除选中的驱动器图标', self)
+        self.delete_button.clicked.connect(self.delete_selected_icon)
+        button_layout.addWidget(self.delete_button)
 
         # 添加备份按钮
         self.backup_button = QPushButton('备份选中的驱动器图标', self)
@@ -452,6 +459,11 @@ class DriveIconManager(QWidget):
     def open_this_pc_registry(self):
         """打开此电脑注册表路径并复制路径"""
         path = r"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace"
+        self.open_registry_editor(path)
+
+    def open_this_pc_registry_2(self):
+        """打开此电脑2注册表路径并复制路径"""
+        path = r"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace"
         self.open_registry_editor(path)
 
     def open_sidebar_registry(self):

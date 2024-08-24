@@ -92,11 +92,9 @@ import subprocess
 import pyperclip
 import win32security
 import win32con
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, \
-    QTabWidget, QListWidget, QListWidgetItem, QTextEdit, QTextBrowser
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, QTabWidget, QListWidget, QListWidgetItem, QTextEdit, QTextBrowser
 from PyQt6.QtCore import Qt
 from markdown import markdown
-import about_content  # ‘关于’模块
 from RegistryPermissionsManager import RegistryPermissionsManager  # 修改注册表权限的模块
 ```
 
