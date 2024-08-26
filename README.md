@@ -48,11 +48,11 @@
 
 ## 发行版
 
-**运行环境：**win10/win11 非精简版系统
+**运行环境：win10/win11 非精简版系统**
 
 ### 开源仓库
 
-<https://github.com/Return-Log/Drive-Icon-Manager>
+https://github.com/Return-Log/Drive-Icon-Manager
 
 ### 网盘下载
 
@@ -105,6 +105,8 @@ from RegistryPermissionsManager import RegistryPermissionsManager  # 修改注�
 ```
 
 python版本：3.12
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Return-Log/Drive-Icon-Manager&type=Date)](https://star-history.com/#Return-Log/Drive-Icon-Manager&Date)
 
 ------
 
